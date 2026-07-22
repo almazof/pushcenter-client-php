@@ -25,8 +25,8 @@ final class NotifyOptions
         public readonly ?int $ttl = null,
         public readonly ?string $idempotencyKey = null,
     ) {
-        if ($collapseId !== null && ($collapseId === '' || strlen($collapseId) > 64)) {
-            throw ValidationException::clientSide('collapse_id must be 1..64 characters');
+        if ($collapseId !== null) {
+            Validation::assertCollapseId($collapseId);
         }
         if ($ttl !== null && ($ttl < 0 || $ttl > 2_419_200)) {
             throw ValidationException::clientSide('ttl must be within 0..2419200 seconds');

@@ -174,6 +174,53 @@ final class RetryBehaviourTest extends TestCase
         );
     }
 
+    public function test429LimitExceededIsNeverRetriedEvenWhenOptedIn(): void
+    {
+        $this->transport->willRespond(self::error(429, 'limit_exceeded'));
+
+        try {
+            $this->client(new RetryConfig(baseDelayMs: 1, retryOn429: true))
+                ->notifyUser('user-1', self::payload());
+            self::fail('expected RateLimitedException');
+        } catch (RateLimitedException $e) {
+            self::assertSame('limit_exceeded', $e->errorCode);
+            self::assertTrue($e->isLimitExceeded());
+        }
+        self::assertCount(1, $this->transport->requests);
+        self::assertSame([], $this->sleeper->sleptMs);
+    }
+
+    public function test429WithoutEnvelopeDefaultsToRateLimitedCode(): void
+    {
+        $this->transport->willRespond(new TransportResponse(429, 'plain text', []));
+
+        try {
+            $this->client()->notifyUser('user-1', self::payload());
+            self::fail('expected RateLimitedException');
+        } catch (RateLimitedException $e) {
+            self::assertSame('rate_limited', $e->errorCode);
+            self::assertFalse($e->isLimitExceeded());
+        }
+    }
+
+    public function testRetryAfterFloorsBackoffDelayWhenRetryingOn429(): void
+    {
+        $this->transport->willRespond(
+            new TransportResponse(
+                429,
+                '{"error":{"code":"rate_limited","message":"slow down"}}',
+                ['retry-after' => '2'],
+            ),
+            FakeTransport::json(202, '{"status":"enqueued"}'),
+        );
+
+        $result = $this->client(new RetryConfig(baseDelayMs: 10, jitter: false, retryOn429: true))
+            ->notifyUser('user-1', self::payload());
+
+        self::assertNotFalse($result);
+        self::assertSame([2000], $this->sleeper->sleptMs, 'delay must be max(backoff, Retry-After)');
+    }
+
     public function testBackoffDelaysGrowAndRespectJitterBounds(): void
     {
         $config = new RetryConfig(maxAttempts: 4, baseDelayMs: 100, multiplier: 2.0, jitter: true);

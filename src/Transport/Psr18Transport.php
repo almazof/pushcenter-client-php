@@ -38,9 +38,17 @@ final class Psr18Transport implements TransportInterface
         try {
             $psrResponse = $this->client->sendRequest($psrRequest);
         } catch (NetworkExceptionInterface $e) {
-            throw new TransportException($e->getMessage(), timedOut: true, previous: $e);
+            // PSR-18 does not distinguish a timeout from other network
+            // failures (DNS, refused connection, ...), so we cannot
+            // honestly claim timedOut here. The concrete exception class
+            // is kept in the message for diagnostics.
+            throw new TransportException(
+                sprintf('[%s] %s', $e::class, $e->getMessage()),
+                timedOut: false,
+                previous: $e,
+            );
         } catch (ClientExceptionInterface $e) {
-            throw new TransportException($e->getMessage(), previous: $e);
+            throw new TransportException(sprintf('[%s] %s', $e::class, $e->getMessage()), previous: $e);
         }
 
         $headers = [];

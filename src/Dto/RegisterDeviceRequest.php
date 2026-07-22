@@ -23,9 +23,7 @@ final class RegisterDeviceRequest
         public readonly ?string $appType = null,
     ) {
         Validation::assertUuidV4('install_id', $installId);
-        if ($deviceToken === '' || strlen($deviceToken) > 4096) {
-            throw ValidationException::clientSide('device_token must be 1..4096 characters');
-        }
+        Validation::assertDeviceToken('device_token', $deviceToken);
         if ($userId !== null && ($userId === '' || strlen($userId) > 128)) {
             throw ValidationException::clientSide('user_id must be 1..128 characters or null');
         }

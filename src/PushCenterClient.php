@@ -34,8 +34,10 @@ use PushCenter\Client\Transport\TransportResponse;
  *
  * Retry contract (SPEC-API §5 rule 1): 5xx and network failures are
  * retried with the SAME idempotency_key and exponential backoff; 4xx are
- * never retried; 429 is surfaced as RateLimitedException unless
- * RetryConfig::$retryOn429 opts in.
+ * never retried; `429 rate_limited` MAY be retried with backoff honouring
+ * Retry-After — by default it is surfaced as RateLimitedException, enable
+ * RetryConfig::$retryOn429 to opt in; `429 limit_exceeded` (device
+ * capacity ceiling) is NEVER retried — a retry cannot succeed.
  *
  * fireAndForget mode: enqueueing a push must never fail a business
  * operation of the calling project. A client obtained via
@@ -204,8 +206,11 @@ final class PushCenterClient
             $data = $this->postJson('/v1/notifications', $body);
 
             return new NotifyResult(self::stringField($data, 'status'), $idempotencyKey);
-        } catch (PushCenterException $e) {
-            if (!$this->fireAndForget) {
+        } catch (TransportException|ApiException $e) {
+            // Client-side pre-flight failures (statusCode 0, e.g. a body
+            // that is not JSON-serializable) are caller bugs — never
+            // silenced, even in fire-and-forget mode.
+            if (!$this->fireAndForget || ($e instanceof ValidationException && $e->statusCode === 0)) {
                 throw $e;
             }
             $this->logger->error('PushCenter notify failed (fire-and-forget): {message}', [
@@ -261,6 +266,10 @@ final class PushCenterClient
                     throw $e;
                 }
                 $delayMs = $retry->delayMsAfter($attempt);
+                if ($e instanceof RateLimitedException && $e->retryAfterSeconds !== null) {
+                    // Honour Retry-After: never sleep less than the server asked.
+                    $delayMs = max($delayMs, $e->retryAfterSeconds * 1000);
+                }
                 $this->logger->warning('PushCenter request failed, retrying in {delay_ms}ms: {message}', [
                     'delay_ms' => $delayMs,
                     'message' => $e->getMessage(),
@@ -278,7 +287,9 @@ final class PushCenterClient
             return true;
         }
         if ($e instanceof RateLimitedException) {
-            return $this->config->retry->retryOn429;
+            // limit_exceeded is a capacity ceiling, not a rate window:
+            // retrying cannot succeed, so retryOn429 does not apply to it.
+            return $this->config->retry->retryOn429 && !$e->isLimitExceeded();
         }
 
         return $e instanceof ApiException && $e->isServerError();
@@ -286,7 +297,7 @@ final class PushCenterClient
 
     private function apiException(TransportResponse $response): ApiException
     {
-        $code = 'server_error';
+        $code = null;
         $message = 'HTTP ' . $response->statusCode;
         $decoded = json_decode($response->body, true);
         if (is_array($decoded) && isset($decoded['error']) && is_array($decoded['error'])) {
@@ -304,8 +315,10 @@ final class PushCenterClient
             return new RateLimitedException(
                 $message,
                 $retryAfter !== null && ctype_digit($retryAfter) ? (int) $retryAfter : null,
+                $code ?? 'rate_limited',
             );
         }
+        $code ??= 'server_error';
         if ($code === 'validation_error') {
             return new ValidationException($response->statusCode, $code, $message);
         }

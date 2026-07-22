@@ -72,6 +72,9 @@ $result = $client
 Прочее API: `notifyInstall($installId, ...)`, `notifyTokens(TokenTarget[], ...)`
 (диагностика/миграции, 1..500 токенов), `health()`, `projectHealth(deep: true)`.
 
+`GET /v1/metrics` осознанно не входит в клиент: это операторский эндпоинт шлюза
+(Prometheus-скрейп/мониторинг, curl) — бэкендам проектов он не нужен.
+
 ## fireAndForget — почему и когда
 
 Постановка пуша **не должна валить бизнес-операцию** проекта: упавший шлюз не повод
@@ -89,8 +92,11 @@ $result = $client
   backoff с джиттером. Дефолт: 3 попытки, база 200мс, множитель 2, cap 5с —
   настраивается `RetryConfig`.
 - `4xx` — не ретраятся никогда (`422` → `ValidationException`, `404`/`401` → `ApiException`).
-- `429` — по умолчанию не ретраится: наружу летит `RateLimitedException` с
-  `retryAfterSeconds`; включить повтор — `RetryConfig(retryOn429: true)`.
+- `429 rate_limited` — по умолчанию не ретраится: наружу летит `RateLimitedException`
+  с `retryAfterSeconds` и фактическим `errorCode`; включить повтор —
+  `RetryConfig(retryOn429: true)` (задержка = max(backoff, `Retry-After`)).
+- `429 limit_exceeded` (потолок устройств проекта) — не ретраится **никогда**,
+  даже при `retryOn429: true`: повтор не приведёт к успеху.
 
 Иерархия исключений: `PushCenterException` ← `TransportException` (сеть),
 `ApiException` (envelope шлюза: `statusCode`, `errorCode`) ←

@@ -70,6 +70,15 @@ final class FireAndForgetTest extends TestCase
         $this->client->notifyUser('u1', self::payload());
     }
 
+    public function testClientSideValidationFailureIsNotSilenced(): void
+    {
+        // Invalid UTF-8 in user_id passes the cheap length check but makes
+        // the body non-JSON-serializable in postJson(). That is a caller
+        // bug, not a delivery failure — fire-and-forget must NOT swallow it.
+        $this->expectException(\PushCenter\Client\Exception\ValidationException::class);
+        $this->client->fireAndForget()->notifyUser("\xC3\x28", self::payload());
+    }
+
     public function testRegistryCallsAreNotSilenced(): void
     {
         // fire-and-forget covers notify* only: a failed register/bind is a

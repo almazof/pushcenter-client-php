@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PushCenter\Client\Dto;
 
-use PushCenter\Client\Exception\ValidationException;
+use PushCenter\Client\Validation;
 
 /** One direct-token recipient of `to.tokens[]` (SPEC-API §4.4). */
 final class TokenTarget
@@ -13,9 +13,7 @@ final class TokenTarget
         public readonly string $token,
         public readonly Platform $platform,
     ) {
-        if ($token === '' || strlen($token) > 4096) {
-            throw ValidationException::clientSide('token must be 1..4096 characters');
-        }
+        Validation::assertDeviceToken('token', $token);
     }
 
     /** @return array{token: string, platform: string} */
