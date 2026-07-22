@@ -72,6 +72,35 @@ $result = $client
 Прочее API: `notifyInstall($installId, ...)`, `notifyTokens(TokenTarget[], ...)`
 (диагностика/миграции, 1..500 токенов), `health()`, `projectHealth(deep: true)`.
 
+### Широковещательная рассылка по проекту
+
+```php
+use PushCenter\Client\Dto\{BroadcastFilters, BroadcastAudience, Platform};
+
+$client->notifyBroadcast(
+    $payload,
+    new BroadcastFilters(          // все фильтры опциональны и комбинируются по И
+        platform: Platform::Ios,
+        locale: 'ru',
+        appType: 'client',
+        audience: BroadcastAudience::Guest,
+    ),
+    new NotifyOptions(idempotencyKey: $key),
+);
+
+$client->notifyBroadcast($payload);                       // вся активная база проекта
+$client->notifyBroadcast($payload, new BroadcastFilters()); // то же самое, явно
+```
+
+Ответ — обычный `202 enqueued|deduplicated`: шлюз принимает ОДИН джоб и
+разворачивает рассылку потоково (SPEC-API §4.4), поэтому вызов возвращается
+задолго до последнего устройства; порядок доставки не гарантируется. Ретрай с
+тем же `idempotency_key` не запускает вторую рассылку. На широковещательные
+запросы у шлюза действует отдельное строгое окно rate limit (дефолт 10/час) —
+`429` приходит типизированным `RateLimitedException`. Фильтр `NotifyOptions::$locale`
+для рассылок запрещён (это фильтр адресации `user_id`); локаль рассылки —
+`BroadcastFilters(locale: ...)`.
+
 `GET /v1/metrics` осознанно не входит в клиент: это операторский эндпоинт шлюза
 (Prometheus-скрейп/мониторинг, curl) — бэкендам проектов он не нужен.
 

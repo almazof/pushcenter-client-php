@@ -7,6 +7,8 @@ namespace PushCenter\Client\Tests\Integration;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use PushCenter\Client\ClientConfig;
+use PushCenter\Client\Dto\BroadcastAudience;
+use PushCenter\Client\Dto\BroadcastFilters;
 use PushCenter\Client\Dto\NotifyOptions;
 use PushCenter\Client\Dto\Platform;
 use PushCenter\Client\Dto\RegisterDeviceRequest;
@@ -54,6 +56,12 @@ final class LiveGatewayContractTest extends TestCase
         file_put_contents($projectDir . '/project.json', json_encode([
             'name' => 'client-int',
             'api_key_hash' => 'sha256:' . hash('sha256', self::API_KEY),
+            // The production broadcast window is 10/hour and the test Redis
+            // is NOT flushed between runs — a realistic limit here would
+            // fail the suite on its fourth run of the hour. The window
+            // itself is covered by the gateway's own tests; what this suite
+            // verifies is the client-to-gateway contract.
+            'broadcast_rate_limit' => ['limit' => 1000, 'window_seconds' => 60],
             'apns' => [
                 'mode' => 'stub',
                 'key_path' => 'missing.p8',
@@ -177,6 +185,42 @@ final class LiveGatewayContractTest extends TestCase
         // 5. Unbind stays idempotent.
         self::assertTrue($this->client->unbindUser($installId)->unbound);
         self::assertTrue($this->client->unbindUser($installId)->unbound);
+    }
+
+    public function testBroadcastIsAcceptedAndDeduplicatedByTheLiveGateway(): void
+    {
+        $payload = (new PayloadBuilder())
+            ->event('service_announcement', 'evt-int-broadcast')
+            ->ui('Плановые работы', 'С 02:00 до 03:00')
+            ->build();
+        $key = IdempotencyKey::deterministic(
+            'evt-int-broadcast',
+            'service_announcement',
+            ['run' => bin2hex(random_bytes(8))],
+            'broadcast',
+        );
+
+        $first = $this->client->notifyBroadcast(
+            $payload,
+            new BroadcastFilters(platform: Platform::Android, locale: 'ru', audience: BroadcastAudience::All),
+            new NotifyOptions(idempotencyKey: $key),
+        );
+        self::assertNotFalse($first);
+        self::assertSame('enqueued', $first->status);
+
+        // The same key cannot start a second rollout (SPEC-API §4.4).
+        $second = $this->client->notifyBroadcast(
+            $payload,
+            new BroadcastFilters(platform: Platform::Android, locale: 'ru', audience: BroadcastAudience::All),
+            new NotifyOptions(idempotencyKey: $key),
+        );
+        self::assertNotFalse($second);
+        self::assertTrue($second->isDeduplicated());
+
+        // No filters at all is the whole active base — still an ordinary 202.
+        $all = $this->client->notifyBroadcast($payload);
+        self::assertNotFalse($all);
+        self::assertSame('enqueued', $all->status);
     }
 
     public function testGatewayValidationErrorIsTyped(): void

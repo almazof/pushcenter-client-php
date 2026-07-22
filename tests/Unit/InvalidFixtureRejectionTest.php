@@ -6,6 +6,8 @@ namespace PushCenter\Client\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use PushCenter\Client\ClientConfig;
+use PushCenter\Client\Dto\BroadcastAudience;
+use PushCenter\Client\Dto\BroadcastFilters;
 use PushCenter\Client\Dto\NotifyOptions;
 use PushCenter\Client\Dto\Platform;
 use PushCenter\Client\Dto\RegisterDeviceRequest;
@@ -42,8 +44,9 @@ final class InvalidFixtureRejectionTest extends TestCase
      * - locale patterns (BCP-47): left to the gateway by design;
      * - to.* oneOf addressing: the client offers one method per mode,
      *   mixed/empty addressing is unrepresentable;
-     * - error-response.* / health-response.*: RESPONSE schemas — the
-     *   client consumes them leniently (forward compatibility, §5.5).
+     * - error-response.* / health-response.* / metrics-response.*: RESPONSE
+     *   schemas — the client consumes them leniently (forward
+     *   compatibility, §5.5).
      *
      * @var list<string>
      */
@@ -67,9 +70,13 @@ final class InvalidFixtureRejectionTest extends TestCase
         'error-response.unknown-field.additionalProperties.json',
         'health-response.queue-missing-dlq.required.json',
         'health-response.queue-negative-depth.minimum.json',
+        'metrics-response.broadcast-missing-batches.required.json',
+        'metrics-response.broadcast-negative-devices.minimum.json',
         'notification-request.missing-idempotency-key.required.json',
         'notification-request.missing-payload.required.json',
         'notification-request.missing-to.required.json',
+        'notification-request.to-broadcast-unknown-filter.additionalProperties.json',
+        'notification-request.to-broadcast-with-user-id.oneOf.json',
         'notification-request.to-empty-object.oneOf.json',
         'notification-request.to-locale-bad-format.pattern.json',
         'notification-request.to-token-without-platform.required.json',
@@ -165,6 +172,23 @@ final class InvalidFixtureRejectionTest extends TestCase
         );
 
         $to = $fixture['to'] ?? null;
+
+        if (is_array($to) && array_key_exists('broadcast', $to) && is_array($to['broadcast'])) {
+            $broadcast = $to['broadcast'];
+            new BroadcastFilters(
+                platform: isset($broadcast['platform']) && is_string($broadcast['platform'])
+                    ? Platform::from($broadcast['platform']) : null,
+                locale: isset($broadcast['locale']) && is_string($broadcast['locale'])
+                    ? $broadcast['locale'] : null,
+                appType: isset($broadcast['app_type']) && is_string($broadcast['app_type'])
+                    ? $broadcast['app_type'] : null,
+                audience: isset($broadcast['audience']) && is_string($broadcast['audience'])
+                    ? BroadcastAudience::from($broadcast['audience']) : null,
+            );
+
+            return;
+        }
+
         if (is_array($to) && array_key_exists('tokens', $to) && is_array($to['tokens'])) {
             $targets = [];
             foreach ($to['tokens'] as $raw) {

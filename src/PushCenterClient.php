@@ -7,6 +7,7 @@ namespace PushCenter\Client;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use PushCenter\Client\Dto\BindUserResult;
+use PushCenter\Client\Dto\BroadcastFilters;
 use PushCenter\Client\Dto\HealthResult;
 use PushCenter\Client\Dto\NotifyOptions;
 use PushCenter\Client\Dto\NotifyResult;
@@ -148,6 +149,44 @@ final class PushCenterClient
         }
 
         return $this->notify(['tokens' => $tokens], $payload, $options);
+    }
+
+    /**
+     * Broadcast to the ACTIVE device base of the project (`to.broadcast`,
+     * SPEC-API §4.4). $filters narrows the audience (platform / locale /
+     * app_type / audience, combined with AND); null or an empty
+     * BroadcastFilters means EVERY active device of the project.
+     *
+     * The response is the ordinary 202 `enqueued`/`deduplicated` — the
+     * gateway accepts one job and streams the fan-out itself, so this call
+     * returns long before the last device is reached. Retries of a failed
+     * call reuse the same idempotency_key (§5.1) and therefore cannot start
+     * a second rollout.
+     */
+    public function notifyBroadcast(
+        Payload $payload,
+        ?BroadcastFilters $filters = null,
+        ?NotifyOptions $options = null,
+    ): NotifyResult|false {
+        $options ??= new NotifyOptions();
+        if ($options->locale !== null) {
+            // to.locale is the user_id-addressing filter; a broadcast
+            // carries its locale INSIDE to.broadcast (oneOf branches are
+            // mutually exclusive).
+            throw ValidationException::clientSide(
+                'to.locale filter is valid only with user_id addressing; use BroadcastFilters(locale: ...)'
+            );
+        }
+
+        $filters ??= new BroadcastFilters();
+
+        // An empty PHP array serializes to `[]`, but the contract branch is
+        // an OBJECT: `{"broadcast": {}}` means "every active device".
+        return $this->notify(
+            ['broadcast' => $filters->isEmpty() ? new \stdClass() : $filters->toArray()],
+            $payload,
+            $options,
+        );
     }
 
     // ---- health ----------------------------------------------------------

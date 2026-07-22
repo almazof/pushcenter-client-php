@@ -24,6 +24,12 @@ final class Validation
     /** collapse_id: printable ASCII only (notification-request.schema.json). */
     private const COLLAPSE_ID = '/^[\x20-\x7e]+$/';
 
+    /** BCP 47 tag of the registry locale and the locale filters (§4.1, §4.4). */
+    private const LOCALE = '/^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$/';
+
+    /** app_type: snake_case (device-register-request / notification-request schemas). */
+    private const APP_TYPE = '/^[a-z][a-z0-9_]*$/';
+
     private function __construct()
     {
     }
@@ -60,6 +66,22 @@ final class Validation
         }
         if (preg_match(self::COLLAPSE_ID, $value) !== 1) {
             throw ValidationException::clientSide('collapse_id must contain printable ASCII only (0x20..0x7E)');
+        }
+    }
+
+    public static function assertLocale(string $value): void
+    {
+        if (strlen($value) < 2 || strlen($value) > 35 || preg_match(self::LOCALE, $value) !== 1) {
+            throw ValidationException::clientSide(
+                'locale must be a BCP 47 tag of 2..35 characters (e.g. "ru", "en-US")'
+            );
+        }
+    }
+
+    public static function assertAppType(string $value): void
+    {
+        if ($value === '' || strlen($value) > 64 || preg_match(self::APP_TYPE, $value) !== 1) {
+            throw ValidationException::clientSide('app_type must be 1..64 characters matching ^[a-z][a-z0-9_]*$');
         }
     }
 
