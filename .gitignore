@@ -1,3 +1,43 @@
+# --- Зависимости и локальные артефакты ---
 /vendor/
 /.phpunit.cache/
+.phpunit.result.cache
+composer.phar
+# Библиотека: lock-файл не фиксируется, версии решает потребитель.
 composer.lock
+/node_modules/
+
+# --- Секреты и учётные данные: не коммитить никогда ---
+.env
+.env.*
+!.env.example
+*.p8
+*.p12
+*.pem
+*.key
+*.crt
+*.cer
+*.pfx
+*.jks
+*.keystore
+service-account*.json
+google-services.json
+GoogleService-Info.plist
+credentials.json
+secrets.*
+
+# --- Логи, дампы и бэкапы БД ---
+*.log
+*.bak
+*.orig
+*.dump
+*.sql.gz
+*.sql.bz2
+
+# --- ОС и IDE ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+*.swp
