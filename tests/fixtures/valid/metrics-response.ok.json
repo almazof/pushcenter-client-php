@@ -1,0 +1,31 @@
+{
+    "queue": {
+        "depth": 3,
+        "delayed": 1,
+        "processing": 0,
+        "dlq": 0
+    },
+    "project": "demo",
+    "days": {
+        "2026-07-22": {
+            "counters": {
+                "success": 120,
+                "terminal": 2,
+                "retryable": 5
+            },
+            "latency": {
+                "count": 127,
+                "avg_ms": 84.3,
+                "max_ms": 512
+            }
+        },
+        "2026-07-21": {
+            "counters": {
+                "success": 0,
+                "terminal": 0,
+                "retryable": 0
+            },
+            "latency": null
+        }
+    }
+}

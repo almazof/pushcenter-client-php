@@ -1,0 +1,22 @@
+{
+    "idempotency_key": "evt-0003.retry-safe_key",
+    "to": {
+        "tokens": [
+            {
+                "token": "fcm-token-abc123",
+                "platform": "android"
+            }
+        ]
+    },
+    "payload": {
+        "event": {
+            "type": "order_created",
+            "id": "evt-0001"
+        },
+        "ui": {
+            "title": "Уведомление",
+            "body": "Откройте приложение для подробностей"
+        }
+    },
+    "collapse_id": "line1\nline2"
+}

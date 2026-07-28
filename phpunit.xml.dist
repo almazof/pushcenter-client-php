@@ -10,14 +10,17 @@
         <testsuite name="unit">
             <directory>tests/Unit</directory>
         </testsuite>
-        <!-- Contract tests against a LIVE gateway (scripts/check.sh - -integration):
-             docker-compose postgres/redis of ../gateway must be up, migrations applied. -->
+        <!-- Contract tests against a LIVE gateway (scripts/check.sh - -integration).
+             They need a local gateway checkout plus its Postgres/Redis; the unit
+             suite, which is what CI and `scripts/check.sh` run, needs neither. -->
         <testsuite name="integration">
             <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>
     <php>
-        <env name="PUSHCENTER_CONTRACT_DIR" value="../contract"/>
+        <!-- Golden fixtures come from tests/fixtures by default; point
+             PUSHCENTER_CONTRACT_DIR at a contract checkout to test for drift. -->
+        <!-- Integration suite only, all overridable from the environment: -->
         <env name="PUSHCENTER_GATEWAY_DIR" value="../gateway"/>
         <env name="PUSHCENTER_TEST_DB_DSN" value="pgsql:host=127.0.0.1;port=55432;dbname=pushcenter_test"/>
         <env name="PUSHCENTER_TEST_DB_USER" value="pushcenter"/>

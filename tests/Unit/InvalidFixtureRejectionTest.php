@@ -24,7 +24,7 @@ use PushCenter\Client\Validation;
 /**
  * Client-side pre-flight validation must reject every invalid contract
  * fixture whose rule IS checkable on the client. The data provider
- * enumerates `contract/fixtures/invalid/` DYNAMICALLY: a new fixture
+ * enumerates `tests/fixtures/invalid/` DYNAMICALLY: a new fixture
  * lands in this suite automatically and fails until it is either
  * rejected by the client or explicitly classified as server-side-only
  * below — contract drift can never pass silently.
@@ -93,7 +93,7 @@ final class InvalidFixtureRejectionTest extends TestCase
     {
         $paths = glob(ContractPaths::fixturesDir() . '/invalid/*.json');
         self::assertNotFalse($paths);
-        self::assertNotEmpty($paths, 'no invalid fixtures found — contract checkout broken?');
+        self::assertNotEmpty($paths, 'no invalid fixtures found — is the fixture directory intact?');
         foreach ($paths as $path) {
             $name = basename($path);
             if (!in_array($name, self::SERVER_SIDE_ONLY, true)) {

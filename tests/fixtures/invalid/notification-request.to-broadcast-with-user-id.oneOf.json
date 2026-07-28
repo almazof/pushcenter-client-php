@@ -1,0 +1,17 @@
+{
+    "idempotency_key": "c1a0c0de0000000000000000000000000000000000000000000000000mixed01",
+    "to": {
+        "broadcast": {},
+        "user_id": "user-102938"
+    },
+    "payload": {
+        "event": {
+            "type": "service_announcement",
+            "id": "evt-broadcast-0001"
+        },
+        "ui": {
+            "title": "Плановые работы",
+            "body": "Сервис будет недоступен с 02:00 до 03:00"
+        }
+    }
+}

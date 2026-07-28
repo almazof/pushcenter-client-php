@@ -1,0 +1,31 @@
+{
+    "idempotency_key": "19b3de87d6d7f5d283f4beea783a7e427a7aefa038c4696ce80dd351b6bdbece",
+    "to": {
+        "install_id": "3f2a1b6c-9d4e-4f7a-8b2c-1e5d6f7a8b9c"
+    },
+    "payload": {
+        "event": {
+            "type": "order_created",
+            "id": "evt-0002",
+            "data": {
+                "recipientRole": "recipient",
+                "source": "user_action",
+                "orderId": 91
+            }
+        },
+        "deeplink": {
+            "target": "OrderDetailsScreen",
+            "params": {
+                "orderId": "42",
+                "fallback": "SearchResults"
+            }
+        },
+        "ui": {
+            "title": "Заказ №1024 готов к выдаче",
+            "subtitle": "",
+            "body": "Новый заказ"
+        }
+    },
+    "collapse_id": "order-91",
+    "ttl": 3600
+}

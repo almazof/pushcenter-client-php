@@ -1,0 +1,7 @@
+{
+    "error": {
+        "code": "server_error",
+        "message": "boom",
+        "details": []
+    }
+}

@@ -4,28 +4,38 @@ declare(strict_types=1);
 
 namespace PushCenter\Client\Tests\Support;
 
-/** Locates the contract repo checked out next door (golden fixtures). */
+/**
+ * Locates the golden request/response fixtures of the gateway API contract.
+ *
+ * By default the fixtures vendored in `tests/fixtures/` are used, so the suite
+ * is self-contained: `scripts/check.sh` passes on a fresh checkout with nothing
+ * but PHP and composer. Their origin and update policy are documented in
+ * `tests/fixtures/README.md`.
+ *
+ * Setting `PUSHCENTER_CONTRACT_DIR` to a checkout of the contract points the
+ * same suite at the upstream fixtures instead — that is how drift between the
+ * vendored copies and the contract is detected before a release.
+ */
 final class ContractPaths
 {
     private function __construct()
     {
     }
 
-    public static function contractDir(): string
-    {
-        $env = getenv('PUSHCENTER_CONTRACT_DIR');
-        $dir = is_string($env) && $env !== '' ? $env : dirname(__DIR__, 3) . '/contract';
-        $real = realpath($dir);
-        if ($real === false) {
-            throw new \RuntimeException("Contract repo not found at {$dir}");
-        }
-
-        return $real;
-    }
-
+    /** Directory holding the `valid/` and `invalid/` fixture sets. */
     public static function fixturesDir(): string
     {
-        return self::contractDir() . '/fixtures';
+        $env = getenv('PUSHCENTER_CONTRACT_DIR');
+        if (is_string($env) && $env !== '') {
+            $real = realpath($env);
+            if ($real === false) {
+                throw new \RuntimeException("PUSHCENTER_CONTRACT_DIR points to a missing directory: {$env}");
+            }
+
+            return $real . '/fixtures';
+        }
+
+        return dirname(__DIR__) . '/fixtures';
     }
 
     /** @return array<string, mixed> */

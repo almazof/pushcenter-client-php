@@ -1,0 +1,9 @@
+{
+    "status": "degraded",
+    "apns": {
+        "status": "failed"
+    },
+    "fcm": {
+        "status": "not_configured"
+    }
+}

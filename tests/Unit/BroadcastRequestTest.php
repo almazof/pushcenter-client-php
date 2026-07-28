@@ -19,7 +19,7 @@ use PushCenter\Client\Tests\Support\FakeTransport;
 
 /**
  * notifyBroadcast() against the golden broadcast fixtures of the contract
- * (ROADMAP principle 3): every valid `to.broadcast` fixture must be
+ * (see tests/fixtures/README.md): every valid `to.broadcast` fixture must be
  * constructible through the typed client API and serialize byte-compatibly.
  */
 final class BroadcastRequestTest extends TestCase

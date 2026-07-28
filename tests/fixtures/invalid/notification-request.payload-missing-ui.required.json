@@ -1,0 +1,12 @@
+{
+    "idempotency_key": "19b3de87d6d7f5d283f4beea783a7e427a7aefa038c4696ce80dd351b6bdbece",
+    "to": {
+        "user_id": "u1"
+    },
+    "payload": {
+        "event": {
+            "type": "order_created",
+            "id": "evt-1"
+        }
+    }
+}

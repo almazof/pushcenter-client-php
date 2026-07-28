@@ -14,15 +14,15 @@ final class PayloadBuilderTest extends TestCase
     public function testBuildsFullPayloadShape(): void
     {
         $payload = (new PayloadBuilder())
-            ->event('booking_created', 'evt-1', ['bookingId' => 91])
-            ->deeplink('TripDetailsScreen', ['tripId' => '42'])
-            ->ui('Уфа → Казань', 'Новое бронирование', '')
+            ->event('order_created', 'evt-1', ['orderId' => 91])
+            ->deeplink('OrderDetailsScreen', ['orderId' => '42'])
+            ->ui('Заказ №1024 готов к выдаче', 'Новый заказ', '')
             ->build();
 
         self::assertSame([
-            'event' => ['type' => 'booking_created', 'id' => 'evt-1', 'data' => ['bookingId' => 91]],
-            'deeplink' => ['target' => 'TripDetailsScreen', 'params' => ['tripId' => '42']],
-            'ui' => ['title' => 'Уфа → Казань', 'subtitle' => '', 'body' => 'Новое бронирование'],
+            'event' => ['type' => 'order_created', 'id' => 'evt-1', 'data' => ['orderId' => 91]],
+            'deeplink' => ['target' => 'OrderDetailsScreen', 'params' => ['orderId' => '42']],
+            'ui' => ['title' => 'Заказ №1024 готов к выдаче', 'subtitle' => '', 'body' => 'Новый заказ'],
         ], $payload->toArray());
     }
 

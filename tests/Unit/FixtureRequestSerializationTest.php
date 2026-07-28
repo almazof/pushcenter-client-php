@@ -17,7 +17,7 @@ use PushCenter\Client\Tests\Support\ContractPaths;
 use PushCenter\Client\Tests\Support\FakeTransport;
 
 /**
- * ROADMAP principle 3 (golden fixtures): every valid request fixture of the
+ * Golden fixtures (see tests/fixtures/README.md): every valid request fixture of the
  * contract must be constructible through the client API. Comparison is
  * JSON-semantic (decoded arrays; PHP `==` ignores key order). The single
  * deliberate normalization: explicit `"user_id": null` in a fixture equals
@@ -168,12 +168,19 @@ final class FixtureRequestSerializationTest extends TestCase
 
         self::assertIsArray($fixture['payload']);
         self::assertIsString($fixture['idempotency_key']);
+        self::assertIsString($fixture['collapse_id']);
+        self::assertIsInt($fixture['ttl']);
+        self::assertIsArray($fixture['to']);
+        self::assertIsString($fixture['to']['install_id']);
+        // Everything is taken from the fixture: the assertion is about the
+        // serialized SHAPE, and hardcoded sample values would turn cosmetic
+        // fixture edits into failures.
         $this->client->notifyInstall(
-            '3f2a1b6c-9d4e-4f7a-8b2c-1e5d6f7a8b9c',
+            $fixture['to']['install_id'],
             Payload::fromArray($fixture['payload']),
             new NotifyOptions(
-                collapseId: 'booking-91',
-                ttl: 3600,
+                collapseId: $fixture['collapse_id'],
+                ttl: $fixture['ttl'],
                 idempotencyKey: $fixture['idempotency_key'],
             ),
         );

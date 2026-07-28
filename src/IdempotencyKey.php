@@ -7,12 +7,20 @@ namespace PushCenter\Client;
 /**
  * Generators for the `idempotency_key` of POST /v1/notifications.
  *
- * deterministic() mirrors Safar's PushNotificationEvent::idempotencyKey():
- * sha256 over pipe-joined canonical parts, where the event data array is
- * normalized by recursive ksort and encoded with
- * JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES. The same business event
- * always yields the same key — retries and accidental double-sends are
- * collapsed by the gateway dedup window (>= 24h).
+ * deterministic() is a stable canonicalization of one business event:
+ *
+ *     sha256(implode('|', [$eventId, $eventType, ...$scope, $json]))
+ *
+ * where `$json` is the event data array normalized by a RECURSIVE ksort and
+ * encoded with JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES. The same
+ * business event therefore always yields the same key — retries and accidental
+ * double-sends are collapsed by the gateway dedup window (>= 24h).
+ *
+ * The formula is part of the integration surface: any sender that derives the
+ * key on its own side (a queued job recomputing the key of the event it
+ * handles, a non-PHP service) must reproduce exactly these steps, otherwise the
+ * two sides disagree and deduplication silently stops working. Changing it is a
+ * breaking change for every live sender.
  */
 final class IdempotencyKey
 {

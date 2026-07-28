@@ -1,0 +1,16 @@
+{
+    "idempotency_key": "short",
+    "to": {
+        "user_id": "u1"
+    },
+    "payload": {
+        "event": {
+            "type": "order_created",
+            "id": "evt-0001"
+        },
+        "ui": {
+            "title": "Уведомление",
+            "body": "Откройте приложение для подробностей"
+        }
+    }
+}

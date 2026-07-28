@@ -1,0 +1,21 @@
+{
+    "idempotency_key": "evt-0003.retry-safe_key",
+    "to": {
+        "tokens": [
+            {
+                "token": "bad token/../with path chars",
+                "platform": "ios"
+            }
+        ]
+    },
+    "payload": {
+        "event": {
+            "type": "order_created",
+            "id": "evt-0001"
+        },
+        "ui": {
+            "title": "Уведомление",
+            "body": "Откройте приложение для подробностей"
+        }
+    }
+}

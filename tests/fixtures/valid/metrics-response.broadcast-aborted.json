@@ -1,0 +1,29 @@
+{
+    "queue": {
+        "depth": 0,
+        "delayed": 0,
+        "processing": 0,
+        "dlq": 1
+    },
+    "project": "demo",
+    "days": {
+        "2026-07-23": {
+            "counters": {
+                "success": 400,
+                "terminal": 0,
+                "retryable": 12
+            },
+            "latency": {
+                "count": 412,
+                "avg_ms": 31.7,
+                "max_ms": 980
+            },
+            "broadcast": {
+                "started": 1,
+                "batches": 1,
+                "devices": 400,
+                "aborted": 1
+            }
+        }
+    }
+}

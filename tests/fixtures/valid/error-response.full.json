@@ -1,0 +1,6 @@
+{
+    "error": {
+        "code": "rate_limited",
+        "message": "Project exceeded notification rate limit; retry with the same idempotency_key"
+    }
+}

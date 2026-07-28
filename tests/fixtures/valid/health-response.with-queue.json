@@ -1,0 +1,9 @@
+{
+  "status": "ok",
+  "queue": {
+    "depth": 12,
+    "delayed": 3,
+    "processing": 1,
+    "dlq": 0
+  }
+}

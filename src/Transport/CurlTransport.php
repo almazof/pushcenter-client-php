@@ -8,7 +8,7 @@ use PushCenter\Client\Exception\TransportException;
 
 /**
  * Built-in zero-dependency transport for projects without a PSR-18 client
- * (plain-curl codebases like Safar-Backend). Requires ext-curl.
+ * (plain-curl codebases). Requires ext-curl.
  */
 final class CurlTransport implements TransportInterface
 {

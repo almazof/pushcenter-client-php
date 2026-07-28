@@ -47,7 +47,7 @@ final class RetryBehaviourTest extends TestCase
     private static function payload(): Payload
     {
         return (new PayloadBuilder())
-            ->event('booking_created', 'evt-1')
+            ->event('order_created', 'evt-1')
             ->ui('Title', 'Body')
             ->build();
     }

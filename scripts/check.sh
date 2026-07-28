@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Single quality gate: PHPStan (level max) + PHPUnit unit suite.
 #
-# With --integration the contract suite runs against a LIVE gateway:
-# the suite itself boots `php -S` from ../gateway/public with a stub
-# project config; the gateway docker-compose postgres/redis must already
-# be up (cd ../gateway && docker compose up -d postgres redis) with
-# migrations applied to pushcenter_test. The default run needs no docker.
+# The default run is self-contained: PHP and composer, nothing else.
+#
+# With --integration the contract suite additionally runs against a LIVE
+# gateway. That needs a local checkout of the gateway service (not part of
+# this repository) plus its Postgres/Redis; the suite boots `php -S` from
+# the gateway's public/ with a stub project config. Paths and connection
+# settings come from PUSHCENTER_GATEWAY_DIR / PUSHCENTER_TEST_* .
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

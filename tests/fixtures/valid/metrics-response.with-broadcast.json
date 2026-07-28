@@ -1,0 +1,43 @@
+{
+    "queue": {
+        "depth": 0,
+        "delayed": 0,
+        "processing": 0,
+        "dlq": 0
+    },
+    "project": "demo",
+    "days": {
+        "2026-07-23": {
+            "counters": {
+                "success": 1200,
+                "terminal": 3,
+                "retryable": 0
+            },
+            "latency": {
+                "count": 1203,
+                "avg_ms": 12.5,
+                "max_ms": 64
+            },
+            "broadcast": {
+                "started": 1,
+                "batches": 3,
+                "devices": 1200,
+                "aborted": 0
+            }
+        },
+        "2026-07-22": {
+            "counters": {
+                "success": 0,
+                "terminal": 0,
+                "retryable": 0
+            },
+            "latency": null,
+            "broadcast": {
+                "started": 0,
+                "batches": 0,
+                "devices": 0,
+                "aborted": 0
+            }
+        }
+    }
+}

@@ -1,0 +1,6 @@
+{
+    "error": {
+        "code": "limit_exceeded",
+        "message": "Project 'demo' reached the maximum of 100000 active devices; deactivate stale devices (retention) or raise the gateway limit."
+    }
+}

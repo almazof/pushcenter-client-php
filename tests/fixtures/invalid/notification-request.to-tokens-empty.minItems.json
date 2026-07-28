@@ -1,0 +1,16 @@
+{
+    "idempotency_key": "19b3de87d6d7f5d283f4beea783a7e427a7aefa038c4696ce80dd351b6bdbece",
+    "to": {
+        "tokens": []
+    },
+    "payload": {
+        "event": {
+            "type": "order_created",
+            "id": "evt-0001"
+        },
+        "ui": {
+            "title": "Уведомление",
+            "body": "Откройте приложение для подробностей"
+        }
+    }
+}

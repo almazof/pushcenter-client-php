@@ -1,0 +1,17 @@
+{
+    "idempotency_key": "29c4ef98e7e8a6e394a5cffb894b8f538b8bffb149d5aa7df91ee462c7cecfdf",
+    "to": {
+        "user_id": "user-102938",
+        "locale": "en-US"
+    },
+    "payload": {
+        "event": {
+            "type": "order_created",
+            "id": "evt-0003"
+        },
+        "ui": {
+            "title": "Order #1024 is ready for pickup",
+            "body": "New order"
+        }
+    }
+}

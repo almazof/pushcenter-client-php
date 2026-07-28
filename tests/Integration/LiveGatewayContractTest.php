@@ -20,11 +20,16 @@ use PushCenter\Client\PushCenterClient;
 use PushCenter\Client\Retry\RetryConfig;
 
 /**
- * Checkpoint C5: contract tests against a LIVE gateway. The suite boots
- * `php -S` from ../gateway/public with a temp stub-project config (same
- * shape as the gateway's own TempProjects::stubDeclaration), the gateway
- * docker-compose postgres (pushcenter_test db, migrations applied here
- * idempotently via bin/migrate.php) and redis (dedicated logical db).
+ * End-to-end contract tests against a LIVE gateway. They are NOT part of the
+ * default suite: running them needs a local checkout of the PushCenter gateway
+ * service, which is not distributed with this client.
+ *
+ * Given one, the suite boots `php -S` from the gateway's `public/` with a
+ * throwaway stub-project config (provider mode `stub`, no real APNs/FCM
+ * credentials), applies migrations idempotently to a dedicated test database
+ * and uses a dedicated Redis logical db. Paths and connection settings come
+ * from the PUSHCENTER_GATEWAY_DIR / PUSHCENTER_TEST_* environment variables
+ * declared in phpunit.xml.dist.
  *
  * @group integration
  */
@@ -167,11 +172,11 @@ final class LiveGatewayContractTest extends TestCase
 
         // 3. notifyUser -> 202 enqueued.
         $payload = (new PayloadBuilder())
-            ->event('booking_created', 'evt-int-1', ['bookingId' => 91])
-            ->deeplink('TripDetailsScreen', ['tripId' => '42'])
-            ->ui('Уфа → Казань', 'Новое бронирование')
+            ->event('order_created', 'evt-int-1', ['orderId' => 91])
+            ->deeplink('OrderDetailsScreen', ['orderId' => '42'])
+            ->ui('Заказ №1024 готов к выдаче', 'Новый заказ')
             ->build();
-        $key = IdempotencyKey::deterministic('evt-int-1', 'booking_created', ['run' => bin2hex(random_bytes(8))], $userId);
+        $key = IdempotencyKey::deterministic('evt-int-1', 'order_created', ['run' => bin2hex(random_bytes(8))], $userId);
 
         $first = $this->client->notifyUser($userId, $payload, new NotifyOptions(idempotencyKey: $key));
         self::assertNotFalse($first);
@@ -292,7 +297,9 @@ final class LiveGatewayContractTest extends TestCase
                 $env[$key] = $value;
             }
         }
-        unset($env['PUSHCENTER_SCHEMAS_DIR']); // default resolves to ../contract/schemas
+        // Let the gateway resolve its own schema directory rather than inherit
+        // a path that is only meaningful inside this repository.
+        unset($env['PUSHCENTER_SCHEMAS_DIR']);
 
         return $env;
     }

@@ -1,0 +1,10 @@
+{
+    "status": "degraded",
+    "mode": "deep",
+    "apns": {
+        "status": "degraded"
+    },
+    "fcm": {
+        "status": "ok"
+    }
+}

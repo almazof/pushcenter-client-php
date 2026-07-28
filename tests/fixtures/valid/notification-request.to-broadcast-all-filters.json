@@ -1,0 +1,21 @@
+{
+    "idempotency_key": "b6a0c0de000000000000000000000000000000000000000000000000filters1",
+    "to": {
+        "broadcast": {
+            "platform": "android",
+            "locale": "ru",
+            "app_type": "admin",
+            "audience": "authenticated"
+        }
+    },
+    "payload": {
+        "event": {
+            "type": "service_announcement",
+            "id": "evt-broadcast-0001"
+        },
+        "ui": {
+            "title": "Плановые работы",
+            "body": "Сервис будет недоступен с 02:00 до 03:00"
+        }
+    }
+}

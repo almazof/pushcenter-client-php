@@ -11,8 +11,8 @@ final class IdempotencyKeyTest extends TestCase
 {
     public function testDeterministicIsStable(): void
     {
-        $a = IdempotencyKey::deterministic('evt-1', 'booking_created', ['b' => 2, 'a' => 1], 'user-7');
-        $b = IdempotencyKey::deterministic('evt-1', 'booking_created', ['b' => 2, 'a' => 1], 'user-7');
+        $a = IdempotencyKey::deterministic('evt-1', 'order_created', ['b' => 2, 'a' => 1], 'user-7');
+        $b = IdempotencyKey::deterministic('evt-1', 'order_created', ['b' => 2, 'a' => 1], 'user-7');
 
         self::assertSame($a, $b);
         self::assertMatchesRegularExpression('/^[a-f0-9]{64}$/', $a);
@@ -35,24 +35,28 @@ final class IdempotencyKeyTest extends TestCase
         self::assertNotSame($base, IdempotencyKey::deterministic('e', 't_x', ['a' => 1], 's2'));
     }
 
-    public function testParityWithSafarAlgorithm(): void
+    /**
+     * Pins the documented formula byte for byte, so a sender that recomputes
+     * the key on its own side can rely on it:
+     * sha256(implode('|', [eventId, eventType, ...scope, json(recursively ksorted data)]))
+     * with JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES.
+     */
+    public function testMatchesTheDocumentedReferenceFormula(): void
     {
-        // Reference formula of Safar PushNotificationEvent::idempotencyKey():
-        // sha256(implode('|', [...parts, json(normalized data)])).
         $data = ['z' => ['b' => 1, 'a' => 'я'], 'a' => 'x/y'];
         $normalized = $data;
         ksort($normalized);
         ksort($normalized['z']);
         $expected = hash('sha256', implode('|', [
             'evt-42',
-            'trip_approved',
+            'order_approved',
             'user-9',
             (string) json_encode($normalized, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         ]));
 
         self::assertSame(
             $expected,
-            IdempotencyKey::deterministic('evt-42', 'trip_approved', $data, 'user-9'),
+            IdempotencyKey::deterministic('evt-42', 'order_approved', $data, 'user-9'),
         );
     }
 

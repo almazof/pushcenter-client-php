@@ -1,0 +1,26 @@
+{
+    "idempotency_key": "evt-0003.retry-safe_key",
+    "to": {
+        "tokens": [
+            {
+                "token": "a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4a1b2c3d4",
+                "platform": "ios"
+            },
+            {
+                "token": "fcm-token-abc123",
+                "platform": "android"
+            }
+        ]
+    },
+    "payload": {
+        "event": {
+            "type": "order_created",
+            "id": "evt-0001"
+        },
+        "ui": {
+            "title": "Уведомление",
+            "body": "Откройте приложение для подробностей"
+        }
+    },
+    "ttl": 0
+}
