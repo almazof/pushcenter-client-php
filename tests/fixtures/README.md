@@ -13,13 +13,33 @@ targets, UI strings, project names) are illustrative placeholders and carry no
 meaning beyond exercising the schema.
 
 **Updating.** The contract is the source of truth; these copies follow it, never
-the other way around. To verify that the copies have not drifted, point the
-suite at a contract checkout:
+the other way around. To verify that the copies have not drifted, run the suite
+against a contract checkout:
 
 ```bash
-PUSHCENTER_CONTRACT_DIR=/path/to/contract vendor/bin/phpunit --testsuite unit
+scripts/check.sh --contract-drift=/path/to/contract
+# equivalently: PUSHCENTER_CONTRACT_DIR=/path/to/contract vendor/bin/phpunit --testsuite unit
 ```
 
-`InvalidFixtureRejectionTest` enumerates `invalid/*.json` dynamically, so a
-fixture present upstream but missing here (or vice versa) surfaces as a test
-failure rather than silently passing.
+**What each run actually guarantees.** Be precise about this — the two modes
+protect against different things:
+
+| | default run (vendored copies) | `--contract-drift` (contract checkout) |
+| --- | --- | --- |
+| client honours every fixture it is pointed at | yes | yes |
+| new `invalid/` fixture upstream is noticed | no — the glob only sees local files | yes, via `FixtureParityTest` and the dynamic `invalid/` enumeration |
+| new `valid/` fixture upstream is noticed | no | yes, via `FixtureParityTest` (name-set comparison) |
+| local fixture deleted upstream is noticed | no | yes, via `FixtureParityTest` |
+| edited CONTENT of an existing fixture | no | yes — the suites replay the upstream bytes |
+
+Two gaps remain by design, and no fixture mechanism closes them:
+
+- a new *valid* fixture is only asserted set-wise; `FixtureRequestSerializationTest`
+  and `BroadcastRequestTest` still name their fixtures one by one, so a new one
+  is reported as missing coverage rather than exercised automatically. Add the
+  case by hand;
+- a new validation RULE without a new fixture is invisible to this repository
+  altogether. Contract changes are reviewed, not inferred.
+
+Because there is no CI (see the repository `CLAUDE.md`), none of this runs by
+itself: `--contract-drift` is a manual pre-release step.

@@ -47,10 +47,17 @@ final class LiveGatewayContractTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        $gatewayDir = self::env('PUSHCENTER_GATEWAY_DIR', dirname(__DIR__, 3) . '/gateway');
+        $gatewayDir = self::env('PUSHCENTER_GATEWAY_DIR', '');
+        if ($gatewayDir === '') {
+            self::fail(
+                'PUSHCENTER_GATEWAY_DIR is not set. The gateway is a separate repository '
+                . 'with no default location: export PUSHCENTER_GATEWAY_DIR=/path/to/gateway '
+                . 'to run `scripts/check.sh --integration`.'
+            );
+        }
         $gatewayReal = realpath($gatewayDir);
         if ($gatewayReal === false || !is_file($gatewayReal . '/public/index.php')) {
-            self::fail("Gateway repo not found at {$gatewayDir}");
+            self::fail("No gateway checkout at {$gatewayDir} (expected public/index.php under it)");
         }
 
         self::$projectsDir = sys_get_temp_dir() . '/pushcenter-client-int-' . bin2hex(random_bytes(6));

@@ -12,16 +12,20 @@
         </testsuite>
         <!-- Contract tests against a LIVE gateway (scripts/check.sh - -integration).
              They need a local gateway checkout plus its Postgres/Redis; the unit
-             suite, which is what CI and `scripts/check.sh` run, needs neither. -->
+             suite, which is what `scripts/check.sh` runs, needs neither. -->
         <testsuite name="integration">
             <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>
     <php>
         <!-- Golden fixtures come from tests/fixtures by default; point
-             PUSHCENTER_CONTRACT_DIR at a contract checkout to test for drift. -->
-        <!-- Integration suite only, all overridable from the environment: -->
-        <env name="PUSHCENTER_GATEWAY_DIR" value="../gateway"/>
+             PUSHCENTER_CONTRACT_DIR at a contract checkout to test for drift
+             (scripts/check.sh - -contract-drift). -->
+        <!-- Integration suite only, all overridable from the environment.
+             PUSHCENTER_GATEWAY_DIR has NO default on purpose: the gateway is a
+             separate repository with no fixed location relative to this one,
+             so a relative guess would only produce confusing failures. -->
+        <env name="PUSHCENTER_GATEWAY_DIR" value=""/>
         <env name="PUSHCENTER_TEST_DB_DSN" value="pgsql:host=127.0.0.1;port=55432;dbname=pushcenter_test"/>
         <env name="PUSHCENTER_TEST_DB_USER" value="pushcenter"/>
         <env name="PUSHCENTER_TEST_DB_PASSWORD" value="pushcenter"/>

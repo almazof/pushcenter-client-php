@@ -24,10 +24,16 @@ use PushCenter\Client\Validation;
 /**
  * Client-side pre-flight validation must reject every invalid contract
  * fixture whose rule IS checkable on the client. The data provider
- * enumerates `tests/fixtures/invalid/` DYNAMICALLY: a new fixture
- * lands in this suite automatically and fails until it is either
- * rejected by the client or explicitly classified as server-side-only
- * below — contract drift can never pass silently.
+ * enumerates the `invalid/` directory DYNAMICALLY, so a fixture added to
+ * whichever set the suite is pointed at lands here automatically and fails
+ * until it is either rejected by the client or explicitly classified as
+ * server-side-only below.
+ *
+ * Note what that does NOT cover: by default the enumeration walks the VENDORED
+ * copies, so a fixture added upstream is simply never seen. Set changes are
+ * caught by FixtureParityTest, which needs a contract checkout
+ * (`scripts/check.sh --contract-drift`). tests/fixtures/README.md has the full
+ * guarantee matrix.
  */
 final class InvalidFixtureRejectionTest extends TestCase
 {
