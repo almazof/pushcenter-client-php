@@ -1,0 +1,57 @@
+# CI: quality gate PHP-клиента.
+#
+# Запускает штатный scripts/check.sh --contract-drift=../contract:
+#   - phpstan (level max)
+#   - phpunit --testsuite unit (вендоренные golden fixtures)
+#   - повторный прогон unit-сьюта против upstream-фикстур из checkout контракта +
+#     двусторонняя сверка списков фикстур (ловит contract drift — цель CI по ROADMAP)
+#
+# PHP: библиотека заявляет >=8.1, но composer.lock фиксирует phpunit 11.5 (>=8.2),
+# поэтому в CI закреплён 8.3.
+#
+# ТРЕБУЕТ СЕКРЕТ: CONTRACT_REPO_TOKEN — fine-grained PAT только на чтение
+# (Contents: Read) репозитория almazof/pushcenter-contract. Владелец должен
+# создать его и добавить как Actions-секрет этого репозитория.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: client-php
+
+      - uses: actions/checkout@v4
+        with:
+          repository: almazof/pushcenter-contract
+          token: ${{ secrets.CONTRACT_REPO_TOKEN }}
+          path: contract
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: curl, json
+          coverage: none
+
+      - name: Cache composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: composer-${{ runner.os }}-${{ hashFiles('client-php/composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: composer install
+        working-directory: client-php
+        run: composer install --no-interaction --no-progress
+
+      - name: Quality gate (phpstan + unit + contract drift)
+        working-directory: client-php
+        run: ./scripts/check.sh --contract-drift=../contract
