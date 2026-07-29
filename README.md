@@ -58,7 +58,7 @@ use PushCenter\Client\Dto\{RegisterDeviceRequest, Platform, NotifyOptions};
 use PushCenter\Client\Payload\PayloadBuilder;
 
 $client = new PushCenterClient(new ClientConfig(
-    baseUrl: 'http://127.0.0.1:8080',
+    baseUrl: 'http://127.0.0.1:8082',
     apiKey: getenv('PUSHCENTER_API_KEY') ?: '',
 ));
 ```
